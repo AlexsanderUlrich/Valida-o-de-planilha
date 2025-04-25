@@ -1,4 +1,4 @@
-Erros encontrados na planilha: 
+Erros encontrados na planilha:
 Linha 17: Matrícula RH inválida ou com mais de 30 caracteres.
 Linha 18: Matrícula RH inválida ou com mais de 30 caracteres.
 Linha 19: Matrícula RH inválida ou com mais de 30 caracteres.
