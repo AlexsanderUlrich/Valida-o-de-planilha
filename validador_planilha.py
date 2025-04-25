@@ -4,6 +4,7 @@ from datetime import datetime
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
 
+
 def data_valida(data):
     try:
         datetime.strptime(str(data), "%d/%m/%Y")
