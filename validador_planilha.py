@@ -2,8 +2,13 @@ import pandas as pd
 import re
 from datetime import datetime
 
+print("""
+ ミ★ Bem vindo ao comparador de planilhas ★彡
+""")
+
 """======================================================= Aqui ficam as principais variaveis do programa """
-arquivo = "c:/Users/eulr1059/Downloads/teste.xlsx" # Caminho para a planinlha que deve ser validada.
+#arquivo = "c:/Users/eulr1059/Downloads/teste.xlsx" # Caminho para a planinlha que deve ser validada.
+arquivo = input("Digite o caminho da planilha: ")
 df = pd.read_excel(arquivo, engine="openpyxl", skiprows=16) # Carregando a planilha na variavel df, ignorando as 16 primeiras linhas
 erros = [] # Cria um array vazio para dicionar os erros encontrados.
 lista_erros_texto = "Erros encontrados na planilha: " + "\n" # Variavel que vai ser adicionada em forma de texto todos os erros encontrados
