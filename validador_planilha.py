@@ -36,89 +36,77 @@ def main(page: Page):
 
     resultado_texto = Text("", selectable=True, color=colors.WHITE)
 
-    # Função que será chamada quando o arquivo for carregado
-    def on_file_uploaded(e: FilePickerUploadFile):
+    # Função que será chamada quando o arquivo for carregado e validado
+    def validar_arquivo(caminho_arquivo):
         try:
-            # Pega o nome do arquivo enviado
-            arquivo_nome = e.file_name
+            # Processa o arquivo, lendo com pandas
+            df = pd.read_excel(caminho_arquivo, engine="openpyxl", skiprows=16)
 
-            # Pega a pasta de Downloads
-            downloads_folder = obter_pasta_downloads()
+            erros = []
+            log_texto = "Erros encontrados na planilha:\n"
 
-            # Cria o caminho completo para o arquivo na pasta Downloads
-            caminho_arquivo = downloads_folder / arquivo_nome
+            # Validação dos dados
+            for index, row in df.iterrows():
+                linha = index + 17
 
-            # Verifica se o arquivo existe
-            if os.path.exists(caminho_arquivo):
-                # Processa o arquivo, lendo com pandas
-                df = pd.read_excel(caminho_arquivo, engine="openpyxl", skiprows=16)
+                if pd.isna(row['TIPO']) or row['TIPO'] != 1:
+                    erros.append(f"Linha {linha}: TIPO deve ser 1 e não pode estar em branco.")
 
-                erros = []
-                log_texto = "Erros encontrados na planilha:\n"
+                id_doc = str(row['CNPJ/CPF/CEI/CAEPF']).replace('.', '').replace('-', '').replace('/', '')
+                if pd.isna(id_doc) or not id_doc.isdigit() or len(id_doc) > 14:
+                    erros.append(f"Linha {linha}: CNPJ/CPF/CEI/CAEPF inválido.")
 
-                # Validação dos dados
-                for index, row in df.iterrows():
-                    linha = index + 17
+                if pd.isna(row['Nome']) or len(str(row['Nome'])) > 50:
+                    erros.append(f"Linha {linha}: NOME vazio ou ultrapassando 50 caracteres.")
 
-                    if pd.isna(row['TIPO']) or row['TIPO'] != 1:
-                        erros.append(f"Linha {linha}: TIPO deve ser 1 e não pode estar em branco.")
+                if row['Nacionalidade'] not in ['BRA', 'ES']:
+                    erros.append(f"Linha {linha}: Nacionalidade deve ser BRA ou ES.")
 
-                    id_doc = str(row['CNPJ/CPF/CEI/CAEPF']).replace('.', '').replace('-', '').replace('/', '')
-                    if pd.isna(id_doc) or not id_doc.isdigit() or len(id_doc) > 14:
-                        erros.append(f"Linha {linha}: CNPJ/CPF/CEI/CAEPF inválido.")
+                if not data_valida(row['Nascimento']):
+                    erros.append(f"Linha {linha}: Data de Nascimento inválida ou vazia.")
 
-                    if pd.isna(row['Nome']) or len(str(row['Nome'])) > 50:
-                        erros.append(f"Linha {linha}: NOME vazio ou ultrapassando 50 caracteres.")
+                if row['Sexo'] not in ['M', 'F']:
+                    erros.append(f"Linha {linha}: Sexo inválido (deve ser M ou F).")
 
-                    if row['Nacionalidade'] not in ['BRA', 'ES']:
-                        erros.append(f"Linha {linha}: Nacionalidade deve ser BRA ou ES.")
+                if pd.isna(row['CPF']) or not cpf_valido(row['CPF']) or len(str(row['CPF'])) > 14:
+                    erros.append(f"Linha {linha}: CPF inválido.")
 
-                    if not data_valida(row['Nascimento']):
-                        erros.append(f"Linha {linha}: Data de Nascimento inválida ou vazia.")
+                if pd.isna(row['Matrícula']) or len(str(row['Matrícula'])) > 30:
+                    erros.append(f"Linha {linha}: Matrícula inválida ou com mais de 30 caracteres.")
 
-                    if row['Sexo'] not in ['M', 'F']:
-                        erros.append(f"Linha {linha}: Sexo inválido (deve ser M ou F).")
+                if pd.isna(row['Matrícula RH']) or len(str(row['Matrícula RH'])) > 30:
+                    erros.append(f"Linha {linha}: Matrícula RH inválida ou com mais de 30 caracteres.")
 
-                    if pd.isna(row['CPF']) or not cpf_valido(row['CPF']) or len(str(row['CPF'])) > 14:
-                        erros.append(f"Linha {linha}: CPF inválido.")
+                if not data_valida(row['Admissão']):
+                    erros.append(f"Linha {linha}: Data de Admissão inválida.")
 
-                    if pd.isna(row['Matrícula']) or len(str(row['Matrícula'])) > 30:
-                        erros.append(f"Linha {linha}: Matrícula inválida ou com mais de 30 caracteres.")
+                if not data_valida(row['Inicio']):
+                    erros.append(f"Linha {linha}: Data de Início inválida.")
 
-                    if pd.isna(row['Matrícula RH']) or len(str(row['Matrícula RH'])) > 30:
-                        erros.append(f"Linha {linha}: Matrícula RH inválida ou com mais de 30 caracteres.")
+                if pd.isna(row['Setor']) or len(str(row['Setor'])) > 100:
+                    erros.append(f"Linha {linha}: Setor inválido ou com mais de 100 caracteres.")
 
-                    if not data_valida(row['Admissão']):
-                        erros.append(f"Linha {linha}: Data de Admissão inválida.")
+                if pd.isna(row['Cargo']) or len(str(row['Cargo'])) > 100:
+                    erros.append(f"Linha {linha}: Cargo inválido ou com mais de 100 caracteres.")
 
-                    if not data_valida(row['Inicio']):
-                        erros.append(f"Linha {linha}: Data de Início inválida.")
+                if pd.isna(row['CBO']):
+                    erros.append(f"Linha {linha}: CBO não pode estar em branco.")
 
-                    if pd.isna(row['Setor']) or len(str(row['Setor'])) > 100:
-                        erros.append(f"Linha {linha}: Setor inválido ou com mais de 100 caracteres.")
+                if pd.isna(row['Descrição Sumária do Cargo']):
+                    erros.append(f"Linha {linha}: Descrição Sumária do Cargo não pode estar em branco.")
 
-                    if pd.isna(row['Cargo']) or len(str(row['Cargo'])) > 100:
-                        erros.append(f"Linha {linha}: Cargo inválido ou com mais de 100 caracteres.")
-
-                    if pd.isna(row['CBO']):
-                        erros.append(f"Linha {linha}: CBO não pode estar em branco.")
-
-                    if pd.isna(row['Descrição Sumária do Cargo']):
-                        erros.append(f"Linha {linha}: Descrição Sumária do Cargo não pode estar em branco.")
-
-                if erros:
-                    log_final = log_texto + "\n".join(erros)
-                    resultado_texto.value = f"⚠️ {len(erros)} erro(s) encontrados.\n\n" + "\n".join(erros)
-                    editar_lista_de_erros(log_final)
-                else:
-                    resultado_texto.value = "✅ Nenhum erro encontrado. Planilha válida!"
+            if erros:
+                log_final = log_texto + "\n".join(erros)
+                resultado_texto.value = f"⚠️ {len(erros)} erro(s) encontrados.\n\n" + "\n".join(erros)
+                editar_lista_de_erros(log_final)
             else:
-                resultado_texto.value = "❌ Arquivo não encontrado na pasta de Downloads."
-
+                resultado_texto.value = "✅ Nenhum erro encontrado. Planilha válida!"
+            
         except Exception as ex:
             resultado_texto.value = f"❌ Erro ao processar a planilha:\n{str(ex)}"
         page.update()
 
+    # Função que será chamada quando o arquivo for selecionado
     def on_file_selected(e: FilePickerResultEvent):
         if not e.files:
             resultado_texto.value = "❌ Nenhum arquivo selecionado."
@@ -127,16 +115,20 @@ def main(page: Page):
 
         arquivo = e.files[0]
 
-        try:
-            # Aqui o código para o upload não é mais necessário,
-            # pois estamos lidando diretamente com a pasta de Downloads
-            resultado_texto.value = f"✅ Arquivo {arquivo.name} selecionado e pronto para validação!"
-            page.update()
-        except Exception as ex:
-            resultado_texto.value = f"❌ Erro ao selecionar o arquivo:\n{str(ex)}"
-            page.update()
+        # Pega o caminho completo do arquivo da pasta de Downloads
+        downloads_folder = obter_pasta_downloads()
+        caminho_arquivo = downloads_folder / arquivo.name
 
-    file_picker = FilePicker(on_result=on_file_selected, on_upload=on_file_uploaded)
+        # Verifica se o arquivo existe na pasta de Downloads
+        if os.path.exists(caminho_arquivo):
+            # Chama a função para validar o arquivo
+            validar_arquivo(caminho_arquivo)
+        else:
+            resultado_texto.value = f"❌ Arquivo {arquivo.name} não encontrado na pasta de Downloads."
+
+        page.update()
+
+    file_picker = FilePicker(on_result=on_file_selected)
     page.overlay.append(file_picker)
 
     titulo = Text("ミ★ Validador de Planilhas ★彡", size=24, weight=FontWeight.BOLD)
