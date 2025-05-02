@@ -29,7 +29,7 @@ def main(page: ft.Page):
     page.title = "Comparador de Planilhas"
     page.scroll = ft.ScrollMode.ALWAYS
 
-    resultado_texto = ft.Text("", selectable=True, color=ft.colors.BLACK)
+    resultado_texto = ft.Text("", selectable=True, color=ft.colors.WHITE)
 
     # FilePicker
     def on_file_selected(e: ft.FilePickerResultEvent):
@@ -108,7 +108,7 @@ def main(page: ft.Page):
     file_picker = ft.FilePicker(on_result=on_file_selected)
     page.overlay.append(file_picker)
 
-    titulo = ft.Text("ミ★ Comparador de Planilhas ★彡", size=24, weight=ft.FontWeight.BOLD)
+    titulo = ft.Text("ミ★ Validador de Planilhas ★彡", size=24, weight=ft.FontWeight.BOLD)
 
     botao = ft.ElevatedButton(
         text="Selecionar e Validar Planilha",
@@ -117,16 +117,15 @@ def main(page: ft.Page):
 
     conteudo = ft.Column(
         controls=[
-            titulo,
-            botao,
+            ft.Row( [titulo], alignment=ft.MainAxisAlignment.CENTER ),
+            ft.Row( [botao], alignment=ft.MainAxisAlignment.CENTER ),
             resultado_texto
         ],
-        spacing=20,
-        alignment=ft.MainAxisAlignment.START,
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER
+        spacing=20
     )
 
     page.add(conteudo)
 
 
-ft.app(target=main)
+#ft.app(target=main)
+ft.app(main, view=ft.AppView.WEB_BROWSER)
