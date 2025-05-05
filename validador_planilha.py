@@ -115,13 +115,26 @@ def main(page: Page):
 
         arquivo = e.files[0]
 
-        # Valida o arquivo diretamente do path temporário (upload via navegador)
-        if os.path.exists(arquivo.path):
-            validar_arquivo(arquivo.path)
+        # Agora, ao invés de verificar o caminho do arquivo, vamos ler o arquivo diretamente.
+        if arquivo is not None:
+            try:
+                # Processa o arquivo diretamente a partir do conteúdo binário
+                with arquivo.open() as f:
+                    # Salva o conteúdo em um arquivo temporário
+                    caminho_temp = "/tmp/" + arquivo.name
+                    with open(caminho_temp, "wb") as temp_file:
+                        temp_file.write(f.read())
+
+                # Agora que temos o arquivo em um caminho temporário, vamos validar o arquivo
+                validar_arquivo(caminho_temp)
+
+            except Exception as ex:
+                resultado_texto.value = f"❌ Erro ao processar o arquivo: {str(ex)}"
         else:
-            resultado_texto.value = f"❌ Arquivo {arquivo.name} não pôde ser acessado."
+            resultado_texto.value = f"❌ Não foi possível acessar o arquivo {arquivo.name}."
 
         page.update()
+
 
     file_picker = FilePicker(on_result=on_file_selected)
     page.overlay.append(file_picker)
