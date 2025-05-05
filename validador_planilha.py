@@ -115,16 +115,11 @@ def main(page: Page):
 
         arquivo = e.files[0]
 
-        # Pega o caminho completo do arquivo da pasta de Downloads
-        downloads_folder = obter_pasta_downloads()
-        caminho_arquivo = downloads_folder / arquivo.name
-
-        # Verifica se o arquivo existe na pasta de Downloads
-        if os.path.exists(caminho_arquivo):
-            # Chama a função para validar o arquivo
-            validar_arquivo(caminho_arquivo)
+        # Valida o arquivo diretamente do path temporário (upload via navegador)
+        if os.path.exists(arquivo.path):
+            validar_arquivo(arquivo.path)
         else:
-            resultado_texto.value = f"❌ Arquivo {arquivo.name} não encontrado na pasta de Downloads."
+            resultado_texto.value = f"❌ Arquivo {arquivo.name} não pôde ser acessado."
 
         page.update()
 
